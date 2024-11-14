@@ -5,6 +5,8 @@ const { pool } = require('../db');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const { createOrderSchema, updateStatusSchema } = require('../schemas/orderSchemas');
 const axios = require('axios');
+const eventBus = require('../events/EventBus');
+const eventTypes = require('../events/eventTypes');
 
 const verifyUserExists = async (userId) => {
   try {
@@ -40,9 +42,19 @@ router.post('/', authenticateToken, async (req, res, next) => {
       [orderId, req.user.user_id, JSON.stringify(items), 'created', total]
     );
 
+    const order = result.rows[0];
+
+    eventBus.publish(eventTypes.ORDER_CREATED, {
+      orderId: order.id,
+      userId: order.user_id,
+      items: order.items,
+      total: order.total,
+      status: order.status,
+    });
+
     res.status(201).json({
       success: true,
-      data: result.rows[0],
+      data: order,
     });
   } catch (error) {
     if (error.name === 'ZodError') {
@@ -173,14 +185,25 @@ router.patch('/:id/status', authenticateToken, async (req, res, next) => {
       });
     }
 
+    const oldStatus = order.status;
+
     const result = await pool.query(
       'UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
       [status, id]
     );
 
+    const updatedOrder = result.rows[0];
+
+    eventBus.publish(eventTypes.ORDER_STATUS_UPDATED, {
+      orderId: updatedOrder.id,
+      userId: updatedOrder.user_id,
+      oldStatus,
+      newStatus: updatedOrder.status,
+    });
+
     res.json({
       success: true,
-      data: result.rows[0],
+      data: updatedOrder,
     });
   } catch (error) {
     if (error.name === 'ZodError') {
@@ -224,10 +247,19 @@ router.delete('/:id', authenticateToken, async (req, res, next) => {
       });
     }
 
+    const oldStatus = order.status;
+
     await pool.query(
       'UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2',
       ['cancelled', id]
     );
+
+    eventBus.publish(eventTypes.ORDER_CANCELLED, {
+      orderId: order.id,
+      userId: order.user_id,
+      oldStatus,
+      newStatus: 'cancelled',
+    });
 
     res.json({
       success: true,
