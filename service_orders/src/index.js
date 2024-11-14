@@ -6,6 +6,7 @@ const pinoHttp = require('pino-http');
 const orderRoutes = require('./routes/orderRoutes');
 const { errorHandler } = require('./middleware/errorHandler');
 const registerEventHandlers = require('./events/registerHandlers');
+const { initializeMessageBroker } = require('./events/messageBroker/eventBrokerIntegration');
 
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
@@ -13,6 +14,10 @@ const logger = pino({
 
 registerEventHandlers();
 logger.info('Domain event handlers registered');
+
+initializeMessageBroker().catch((error) => {
+  logger.error({ error }, 'Failed to initialize message broker');
+});
 
 const app = express();
 const PORT = process.env.PORT || 3002;
