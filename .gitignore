@@ -9,3 +9,5 @@ coverage
 .idea
 postgres_data
 
+SETUP_GUIDE.md
+WORK_COMPLETED.md
