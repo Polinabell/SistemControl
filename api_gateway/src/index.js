@@ -16,7 +16,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
 
 app.use((req, res, next) => {
   req.id = req.headers['x-request-id'] || uuidv4();
@@ -60,9 +59,6 @@ app.use(
     changeOrigin: true,
     onProxyReq: (proxyReq, req) => {
       proxyReq.setHeader('X-Request-ID', req.id);
-      if (req.headers['authorization']) {
-        proxyReq.setHeader('Authorization', req.headers['authorization']);
-      }
     },
     onError: (err, req, res) => {
       logger.error({ err, requestId: req.id }, 'Proxy error to service_users');
@@ -84,9 +80,6 @@ app.use(
     changeOrigin: true,
     onProxyReq: (proxyReq, req) => {
       proxyReq.setHeader('X-Request-ID', req.id);
-      if (req.headers['authorization']) {
-        proxyReq.setHeader('Authorization', req.headers['authorization']);
-      }
     },
     onError: (err, req, res) => {
       logger.error({ err, requestId: req.id }, 'Proxy error to service_orders');
