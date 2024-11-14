@@ -40,7 +40,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-const publicPaths = ['/v1/users/register', '/v1/users/login'];
+const publicPaths = ['/v1/users/register', '/v1/users/login', '/health'];
 
 app.use((req, res, next) => {
   const isPublicPath = publicPaths.some((path) => req.path.startsWith(path));
