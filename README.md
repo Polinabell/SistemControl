@@ -34,19 +34,27 @@ docker-compose down
 
 ## Тестирование
 
-Запустите тестовый скрипт:
+### Юнит-тесты (Jest)
+
+```bash
+# Service Users
+cd service_users && npm test
+
+# Service Orders
+cd service_orders && npm test
+```
+
+### E2E тестирование
 
 ```bash
 ./test-api.sh
 ```
 
-Или используйте curl вручную:
+### Postman
 
-```bash
-curl -X POST http://localhost:3000/v1/users/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "password123", "name": "Test User"}'
-```
+Импортируйте `docs/postman-collection.json` в Postman
+
+**Подробнее:** см. `docs/TESTING.md`
 
 ## API Документация
 
