@@ -21,6 +21,17 @@ router.post('/', authenticateToken, async (req, res, next) => {
     const validatedData = createOrderSchema.parse(req.body);
     const { items } = validatedData;
 
+    const userExists = await verifyUserExists(req.user.user_id);
+    if (!userExists) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User does not exist',
+        },
+      });
+    }
+
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const orderId = uuidv4();
 
