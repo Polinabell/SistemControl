@@ -9,10 +9,43 @@
 - **Service Orders** (порт 3002) - управление заказами
 - **PostgreSQL** (порт 5432) - база данных
 
+## Требования
+
+- Docker Desktop (запущен)
+- Docker Compose
+
 ## Запуск
 
 ```bash
 docker-compose up --build
+```
+
+Для фонового запуска:
+
+```bash
+docker-compose up --build -d
+```
+
+Остановка:
+
+```bash
+docker-compose down
+```
+
+## Тестирование
+
+Запустите тестовый скрипт:
+
+```bash
+./test-api.sh
+```
+
+Или используйте curl вручную:
+
+```bash
+curl -X POST http://localhost:3000/v1/users/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "password123", "name": "Test User"}'
 ```
 
 ## API Документация
@@ -33,4 +66,6 @@ docker-compose up --build
 - JWT
 - pino (логирование)
 - zod (валидация)
+- express-rate-limit
+- cors
 
