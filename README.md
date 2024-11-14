@@ -50,7 +50,9 @@ curl -X POST http://localhost:3000/v1/users/register \
 
 ## API Документация
 
-См. `docs/openapi.yaml`
+- OpenAPI спецификация: `docs/openapi.yaml`
+- Примеры использования: `docs/API_EXAMPLES.md`
+- Postman коллекция: `docs/postman-collection.json`
 
 ## Окружения
 
