@@ -10,9 +10,8 @@ const eventTypes = require('../events/eventTypes');
 
 const verifyUserExists = async (userId) => {
   try {
-    const serviceUsersUrl = process.env.SERVICE_USERS_URL || 'http://service_users:3001';
-    const response = await axios.get(`${serviceUsersUrl}/v1/users/${userId}`);
-    return response.status === 200;
+    const result = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
+    return result.rows.length > 0;
   } catch (error) {
     return false;
   }
