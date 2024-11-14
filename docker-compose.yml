@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: systema_kontrola_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: systema_kontrola_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - backend_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  service_users:
+    build:
+      context: ./service_users
+      dockerfile: Dockerfile
+    container_name: service_users
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:password@db:5432/systema_kontrola_dev
+      JWT_SECRET: dev_secret
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend_net
+    restart: unless-stopped
+
+  service_orders:
+    build:
+      context: ./service_orders
+      dockerfile: Dockerfile
+    container_name: service_orders
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:password@db:5432/systema_kontrola_dev
+      JWT_SECRET: dev_secret
+      SERVICE_USERS_URL: http://service_users:3001
+    ports:
+      - "3002:3002"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend_net
+    restart: unless-stopped
+
+  api_gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      JWT_SECRET: dev_secret
+      SERVICE_USERS_URL: http://service_users:3001
+      SERVICE_ORDERS_URL: http://service_orders:3002
+    ports:
+      - "3000:3000"
+    depends_on:
+      - service_users
+      - service_orders
+    networks:
+      - backend_net
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  backend_net:
+    driver: bridge
+
